@@ -1,0 +1,267 @@
+:root {
+  --gold: #ffdf00;
+  --bg-dark: #0a051a;
+  --aura: #311b92;
+  --card-bg: rgba(30, 15, 60, 0.6); /* 少しだけ濃くして高級感を */
+  --line: rgba(255, 255, 255, 0.12);
+  --btn-grad: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+}
+
+/* 全体：フォントの端切れを良くする */
+body {
+  margin: 0;
+  background: radial-gradient(circle at 50% 10%, var(--aura) 0%, var(--bg-dark) 80%);
+  background-attachment: fixed;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased; /* 文字をクッキリさせる */
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: min(92vw, 380px);
+  padding: 60px 0; /* 余白をたっぷりとる */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header */
+.top-nav { text-align: center; margin-bottom: 40px; }
+.status-badge {
+  font-size: 10px; font-weight: 700; padding: 6px 18px; border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1); color: var(--gold); border: 1px solid var(--line);
+}
+.main-title { 
+  font-size: 28px; 
+  font-weight: 400;
+  letter-spacing: 1px; 
+  margin-top: 15px; 
+}
+.main-title span { color: var(--gold); font-weight: 700; text-shadow: 0 0 20px rgba(255, 223, 0, 0.4); }
+
+/* Card Body */
+.primary-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+.primary-card::after {
+  content: "";
+  position: absolute;
+  inset: -40% -20%;
+  background: radial-gradient(circle, rgba(255, 223, 0, 0.08), transparent 55%);
+  animation: ambientGlow 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 脳汁：巨大数字 */
+.rank-hero { margin-bottom: 60px; }
+.hero-label { font-size: 10px; letter-spacing: 6px; opacity: 0.3; margin-bottom: 20px; }
+.seed-row {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.seed-label { opacity: 0.6; }
+.seed-value { color: var(--gold); font-weight: 700; }
+.big-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 72px; 
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(255, 223, 0, 0.5);
+}
+.big-number small { 
+  font-size: 20px; 
+  opacity: 0.8;
+  margin-left: 4px; 
+}
+
+/* TIER表示：称号よりステータス感を重視 */
+.mega-tier {
+  margin-top: 15px; 
+  font-size: 16px; 
+  font-weight: 800; 
+  letter-spacing: 4px;
+  color: #fff;
+  opacity: 0.9;
+  transition: 1s ease;
+}
+.mega-tier.active { opacity: 0.9; text-shadow: 0 0 15px var(--gold); }
+
+/* Ranking Board */
+.ranking-board { margin-bottom: 40px; text-align: left; }
+.board-label { font-size: 10px; letter-spacing: 3px; opacity: 0.2; text-align: center; margin-bottom: 20px; }
+.rank-item {
+  display: flex; justify-content: space-between; align-items: center; padding: 18px;
+  background: rgba(255, 255, 255, 0.03); border-radius: 14px;
+  border: 1px solid var(--line); margin-bottom: 10px;
+}
+.r-no { font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0.3; }
+.r-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--gold); }
+
+/* TOP3を派手に */
+.ranking-board.top3 .rank-item {
+  position: relative;
+  padding-left: 28px;
+  background: linear-gradient(135deg, rgba(255, 223, 0, 0.12), rgba(109, 40, 217, 0.12));
+  border-color: rgba(255, 223, 0, 0.45);
+  box-shadow: 0 0 18px rgba(255, 223, 0, 0.2), 0 0 32px rgba(109, 40, 217, 0.2);
+}
+.ranking-board.top3 .rank-item::before {
+  content: "★";
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  color: var(--gold);
+  font-size: 12px;
+  opacity: 0.7;
+}
+.ranking-board.top3 .rank-item.tier-1::before {
+  content: "👑";
+  font-size: 14px;
+  opacity: 0.9;
+}
+.ranking-board.top3 .rank-item.tier-1 {
+  background: linear-gradient(135deg, rgba(255, 223, 0, 0.2), rgba(255, 170, 0, 0.18));
+  border-color: rgba(255, 223, 0, 0.7);
+  box-shadow: 0 0 26px rgba(255, 223, 0, 0.35), 0 0 44px rgba(255, 170, 0, 0.35);
+  transform: translateY(-2px);
+}
+.ranking-board.top3 .rank-item.tier-1 .r-val {
+  font-size: 20px;
+  text-shadow: 0 0 16px rgba(255, 223, 0, 0.5);
+}
+.ranking-board.top3 .r-no {
+  color: var(--gold);
+  opacity: 0.8;
+}
+.ranking-board.top3 .r-name {
+  opacity: 0.85;
+}
+.ranking-board.top3 .r-val {
+  font-size: 18px;
+  text-shadow: 0 0 12px rgba(255, 223, 0, 0.35);
+}
+
+#historyContainer .rank-item {
+  padding: 14px 16px;
+}
+#historyContainer .r-info {
+  gap: 8px;
+}
+#historyContainer .r-name {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+/* Button：高級長方形（角丸16px） */
+.action-trigger {
+  width: 100%; 
+  padding: 18px; 
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  color: white; 
+  font-weight: 700; 
+  letter-spacing: 1px; 
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
+  transition: 0.3s;
+}
+.action-trigger:active { transform: scale(0.97); }
+.action-trigger.ghost {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+}
+.status-tip { font-size: 10px; opacity: 0.2; margin-top: 15px; }
+.soft-hint {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+}
+.cooldown-display {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 自分の順位をハイライト */
+.rank-item.is-me {
+    background: rgba(109, 40, 217, 0.2); /* 紫の透過 */
+    border-color: rgba(255, 223, 0, 0.4); /* 黄金の縁取り */
+    box-shadow: 0 0 15px rgba(109, 40, 217, 0.3);
+}
+
+.r-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.r-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.6;
+}
+
+/* 自分の名前だけ強調 */
+.is-me .r-name {
+  
+    color: var(--gold);
+    opacity: 1;
+}
+
+.is-me .r-no {
+    color: var(--gold);
+    font-weight: 900;
+}
+
+.home-link {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 223, 0, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes ambientGlow {
+  0% { transform: translateY(-10%) scale(1); opacity: 0.4; }
+  50% { transform: translateY(6%) scale(1.05); opacity: 0.7; }
+  100% { transform: translateY(-10%) scale(1); opacity: 0.4; }
+}

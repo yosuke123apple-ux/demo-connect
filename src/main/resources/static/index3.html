@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MILLION CORE - 解析完了</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;800&family=JetBrains+Mono:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style3.css">
+</head>
+<body>
+<div class="app-container">
+  
+  <header class="top-nav">
+    <div class="status-badge">The One in a Million</div>
+    <h1 class="main-title">MILLION<span class="gold-text">CORE</span></h1>
+    <p class="sub-text">今日が結果発表、明日投票日</p>
+  </header>
+
+  <section class="result-section fade-in">
+    <div class="card result-card primary-card">
+      <div class="card-header">📍 あなたの解析データ</div>
+      <div class="rank-display">
+        <p class="label">確定ランク</p>
+        <div class="big-rank" id="display-rank">---</div>
+      </div>
+      <div class="data-log">
+        <div class="log-row">
+          <span class="log-label">あなたが予約した数字:</span>
+          <span class="log-value" id="display-pick">000,000</span>
+        </div>
+        <div class="log-row">
+          <span class="log-label">獲得称号:</span>
+          <span class="log-value highlight" id="display-title">解析中...</span>
+        </div>
+      </div>
+      <button class="share-trigger" id="share-btn">結果を SNS に投稿する</button>
+    </div>
+  </section>
+
+  <section class="ranking-section fade-in" style="animation-delay: 0.2s;">
+    <h3 class="section-title">トップランキング</h3>
+    <div class="ranking-container">
+      <div class="rank-item tier-1">
+        <div class="rank-num">1</div><div class="core-val">823,491</div><div class="tier-label">TOP</div>
+      </div>
+      <div class="rank-item tier-2">
+        <div class="rank-num">2</div><div class="core-val">12,005</div><div class="tier-label">CORE</div>
+      </div>
+      <div class="rank-item tier-3">
+        <div class="rank-num">3</div><div class="core-val">559,210</div><div class="tier-label">CORE</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="weekly-section fade-in" style="animation-delay: 0.3s;">
+    <h3 class="section-title">WEEKLY STATS</h3>
+    <div class="card weekly-card">
+      <div class="weekly-row">
+        <span class="weekly-label">週間ベスト順位</span>
+        <span class="weekly-value" id="weeklyBest">--</span>
+      </div>
+      <div class="weekly-row">
+        <span class="weekly-label">今週の参加回数</span>
+        <span class="weekly-value" id="weeklyCount">--</span>
+      </div>
+      <div class="weekly-row">
+        <span class="weekly-label">連続参加</span>
+        <span class="weekly-value" id="weeklyStreak">--</span>
+      </div>
+      <div class="weekly-row accent">
+        <span class="weekly-label">週間順位（推定）</span>
+        <span class="weekly-value" id="weeklyRank">--</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer-actions fade-in" style="animation-delay: 0.4s;">
+    <button class="wide-action-btn" id="view-collection">
+      <span class="btn-icon">📚</span> 称号図鑑コレクションを開く
+    </button>
+
+    <div class="card next-session-card">
+      <p class="next-label">NEXT ANALYSIS SESSION</p>
+      <div class="next-timer" id="next-timer">00:00:00</div>
+      <p class="next-status">システム再起動まで待機中...</p>
+    </div>
+  </footer>
+
+  <a href="index.html" class="home-link fade-in" style="animation-delay: 0.45s;">ホームに戻る</a>
+
+  <section class="title-collection-section" id="title-section">
+    <h3 class="section-title">TITLE COLLECTION</h3>
+    <p class="collection-count" id="collection-count">取得数 0 / 0</p>
+    <div class="collection-banner" id="collection-banner">次の解放まで --</div>
+    <div class="collection-list" id="collection-list">
+      </div>
+  </section>
+
+</div>
+<script src="app3.js"></script>
+</body>
+</html>

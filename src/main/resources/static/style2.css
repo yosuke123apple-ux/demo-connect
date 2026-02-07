@@ -1,0 +1,212 @@
+/* =========================================
+   1. 背景とコンテナ：明るさと奥行きを強化
+   ========================================= */
+:root {
+  --bg-dark: #0f0524;
+  --aura: #4c1d95;           /* 明るい紫の発光 */
+  --gold: #ffdf00;
+  --line: rgba(255, 255, 255, 0.2); 
+  --card-bg: rgba(50, 25, 80, 0.5); /* カードを少し明るく */
+}
+
+body {
+  margin: 0;
+  /* 放射状グラデーションの範囲を広げて全体を明るく */
+  background: radial-gradient(circle at 50% 15%, var(--aura) 0%, var(--bg-dark) 80%);
+  background-attachment: fixed;
+  color: white;
+  font-family: 'Inter', -apple-system, sans-serif;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: min(94vw, 380px);
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* カード同士の間隔を均一に */
+}
+
+/* =========================================
+   2. カード基本：発光感（Glow）を追加
+   ========================================= */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 22px;
+  text-align: center; /* すべての要素を中央へ */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(76, 29, 149, 0.3);
+}
+
+/* =========================================
+   3. 各セクションの個別調整
+   ========================================= */
+
+/* ヘッダー */
+.top-nav { text-align: center; margin-bottom: 5px; }
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.main-title { font-size: 34px; font-weight: 300; letter-spacing: 1px; }
+.main-title span { color: var(--gold); font-weight: 700; text-shadow: 0 0 15px rgba(255, 223, 0, 0.5); }
+.sub-text { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+/* 予想番号メイン */
+.primary-card { border: 1px solid rgba(255, 223, 0, 0.4); padding: 40px 20px; }
+.icon-wrap {
+  width: 48px; height: 48px; background: rgba(255, 223, 0, 0.15);
+  border: 1px solid var(--gold); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 15px; color: var(--gold); font-size: 22px;
+  box-shadow: 0 0 15px rgba(255, 223, 0, 0.3);
+}
+.big-number { 
+  font-size: 80px; font-weight: 200; color: var(--gold); 
+  line-height: 1; margin: 10px 0;
+  text-shadow: 0 0 35px rgba(255, 223, 0, 0.5);
+}
+
+/* カウントダウン：テキストを中央・上に配置 */
+.countdown-card { display: flex; flex-direction: column; align-items: center; padding: 25px; }
+.status-inner { font-size: 13px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; letter-spacing: 1px; }
+.timer-row { display: flex; justify-content: center; gap: 32px; }
+.time-item { display: flex; flex-direction: column; align-items: center; }
+.time-item strong { font-size: 40px; font-weight: 200; line-height: 1; }
+.time-item span { font-size: 10px; opacity: 0.6; margin-top: 6px; }
+.highlight strong { color: var(--gold); text-shadow: 0 0 15px rgba(255, 223, 0, 0.4); }
+
+/* 履歴チップ：数字をど真ん中に固定 */
+.history-header { font-size: 12px; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; padding: 0 5px; }
+.dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 10px rgba(74, 222, 128, 0.6); }
+.count { margin-left: auto; opacity: 0.5; }
+/* 統計：下部2カラム */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mini-card .val { font-size: 26px; font-weight: 400; display: block; }
+.mini-card .val.green { color: #5fffa3; text-shadow: 0 0 10px rgba(95, 255, 163, 0.4); }
+.mini-card .lbl { font-size: 10px; opacity: 0.6; margin-top: 6px; }
+
+
+/* --- 入力エリアの修正 --- */
+.input-focus-area {
+  margin: 10px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#user-predict {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 223, 0, 0.3);
+  color: var(--gold);
+  /* 桁数が増えても収まるように可変サイズに */
+  font-size: clamp(32px, 12vw, 64px); 
+  font-weight: 200;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  outline: none;
+  padding: 10px 0;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* プレースホルダーを薄く */
+#user-predict::placeholder {
+  color: rgba(255, 223, 0, 0.2);
+}
+
+/* Chrome, Safari, Edge の矢印（スピンボタン）を消去 */
+#user-predict::-webkit-outer-spin-button,
+#user-predict::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+#user-predict:focus {
+  border-bottom-color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 223, 0, 0.4);
+}
+
+.status-tip {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+}
+.soft-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: -8px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+/* ボタンのデザインを画像に合わせる（白文字・紫グラデ） */
+.action-trigger {
+  width: 100%;
+  background: linear-gradient(135deg, #4c1d95 0%, #312e81 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+/* 確定後の数字をより強調 */
+#display-number {
+  font-size: clamp(48px, 15vw, 80px);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(255, 223, 0, 0.6);
+  font-weight: 200;
+  margin: 15px 0;
+}
+.history-chips {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 15px;
+  transition: opacity 0.5s ease; /* 切り替わりをスムーズに */
+}
+
+.chip {
+  flex: 1; /* 2個が均等な幅になる */
+  max-width: 160px; /* 広がりすぎ防止 */
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 15px 10px;
+  font-size: 20px;
+  font-weight: 300;
+  text-align: center;
+  color: var(--gold); /* 数字を目立たせる */
+  text-shadow: 0 0 10px rgba(255, 223, 0, 0.2);
+}
+
+.home-link {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 223, 0, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}

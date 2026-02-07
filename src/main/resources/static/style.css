@@ -1,0 +1,231 @@
+:root {
+  --bg-dark: #0f0524;
+  --aura: #4c1d95;
+  --gold: #ffdf00;
+  --card-bg: rgba(50, 25, 80, 0.55);
+  --line: rgba(255,255,255,0.2);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 15%, var(--aura), var(--bg-dark) 75%);
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+.app-container {
+  width: min(94vw, 420px);
+  padding: 40px 0;
+}
+
+/* ===== Header ===== */
+.top-nav {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.15);
+  color: var(--gold);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.main-title {
+  font-size: 36px;
+  font-weight: 200;
+  margin: 10px 0 4px;
+}
+
+.main-title span {
+  color: var(--gold);
+  font-weight: 700;
+  text-shadow: 0 0 15px rgba(255,223,0,0.5);
+}
+
+.sub-text {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ===== Mode Cards ===== */
+.mode-select {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  padding: 26px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.mode-icon {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.mode-card h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.mode-desc {
+  font-size: 13px;
+  opacity: 0.85;
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.mode-features {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 18px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.mode-features li {
+  margin: 6px 0;
+}
+
+.mode-status {
+  font-size: 11px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+  margin: 6px 0 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===== Buttons ===== */
+.mode-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #312e81, #1e1b4b);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  margin: 0;
+  text-align: center;
+  appearance: none;
+}
+
+.mode-btn.highlight {
+  background: linear-gradient(135deg, #4c1d95, #7c3aed);
+  box-shadow: 0 0 20px rgba(124,58,237,0.4);
+}
+
+.mode-btn.pulse {
+  position: relative;
+  overflow: hidden;
+}
+.mode-btn.pulse::after {
+  content: "";
+  position: absolute;
+  inset: -60% -40%;
+  background: radial-gradient(circle, rgba(255, 223, 0, 0.25), transparent 60%);
+  animation: pulseGlow 2.8s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0% { transform: scale(0.8); opacity: 0.2; }
+  50% { transform: scale(1.1); opacity: 0.6; }
+  100% { transform: scale(0.9); opacity: 0.2; }
+}
+
+/* ===== Footer ===== */
+.mode-note {
+  margin-top: 20px;
+  font-size: 11px;
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* ===== Quick Gate ===== */
+.gate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 3, 18, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.gate-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.gate-card {
+  width: min(92vw, 360px);
+  background: rgba(22, 10, 40, 0.85);
+  border: 1px solid rgba(255, 223, 0, 0.25);
+  border-radius: 22px;
+  padding: 26px 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  text-align: center;
+}
+.gate-kicker {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  opacity: 0.7;
+}
+.gate-title {
+  margin: 10px 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.gate-desc {
+  font-size: 12px;
+  opacity: 0.8;
+  line-height: 1.6;
+}
+.gate-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.gate-btn {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid rgba(255,255,255,0.15);
+  text-decoration: none;
+  color: white;
+  background: linear-gradient(135deg, #312e81, #1e1b4b);
+  cursor: pointer;
+}
+.gate-btn.primary {
+  background: linear-gradient(135deg, #7c3aed, #4c1d95);
+  box-shadow: 0 0 18px rgba(124,58,237,0.35);
+}
+.gate-btn.ghost {
+  background: transparent;
+  border-color: rgba(255,255,255,0.2);
+}

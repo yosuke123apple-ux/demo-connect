@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MILLION CORE</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ===== Header ===== -->
+    <header class="top-nav">
+      <div class="status-badge">The One in a Million</div>
+      <h1 class="main-title">MILLION<span>CORE</span></h1>
+      <p class="sub-text">百万通りの中から、ただ一つを選べ</p>
+    </header>
+
+    <!-- ===== Mode Select ===== -->
+    <section class="mode-select">
+
+      <!-- Daily Mode -->
+      <div class="card mode-card daily">
+        <div class="mode-icon">📅</div>
+        <h2>DAILY MODE</h2>
+        <p class="mode-desc">
+          1日1回だけ予想。<br>
+          結果は翌日にのみ公開。
+        </p>
+        <ul class="mode-features">
+          <li>✔ ネタバレなし</li>
+          <li>✔ 称号コレクション対応</li>
+          <li>✔ 緊張感MAX</li>
+        </ul>
+        <p class="mode-status" id="dailyStatus">状態を確認中...</p>
+        <a href="index2.html" class="mode-btn">一日モードにエントリー</a>
+      </div>
+
+      <!-- Five Minute Mode -->
+      <div class="card mode-card quick">
+        <div class="mode-icon">⚡</div>
+        <h2>FIVE MODE</h2>
+        <p class="mode-desc">
+          5分ごとに順位更新。<br>
+          すぐ結果がわかる。
+        </p>
+        <ul class="mode-features">
+          <li>✔ 即結果</li>
+          <li>✔ 回転率重視</li>
+          <li>✔ スキマ時間向け</li>
+        </ul>
+        <button class="mode-btn highlight pulse" id="openQuick">五分モードで挑戦</button>
+      </div>
+
+    </section>
+
+    <!-- ===== Footer Note ===== -->
+    <p class="mode-note">
+      ※ 一日モードは結果固定 / 五分モードはリアルタイム更新
+    </p>
+
+  </div>
+
+  <!-- ===== Quick Mode Gate ===== -->
+  <div class="gate-overlay" id="quickGate" aria-hidden="true">
+    <div class="gate-card">
+      <p class="gate-kicker">RAPID MODE / ACCESS GATE</p>
+      <h3 class="gate-title">脳汁を解放して進め</h3>
+      <p class="gate-desc">5分間だけ許された高速再抽選。<br>準備ができたら押せ。</p>
+      <div class="gate-actions">
+        <a href="index4.html" class="gate-btn primary">脳汁ブーストで開始</a>
+        <button class="gate-btn ghost" id="closeQuick">戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const openQuick = document.getElementById('openQuick');
+    const closeQuick = document.getElementById('closeQuick');
+    const quickGate = document.getElementById('quickGate');
+
+    const openGate = () => {
+      if (!quickGate) return;
+      quickGate.classList.add('is-open');
+      quickGate.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeGate = () => {
+      if (!quickGate) return;
+      quickGate.classList.remove('is-open');
+      quickGate.setAttribute('aria-hidden', 'true');
+    };
+
+    openQuick?.addEventListener('click', openGate);
+    closeQuick?.addEventListener('click', closeGate);
+    quickGate?.addEventListener('click', (e) => {
+      if (e.target === quickGate) closeGate();
+    });
+
+    const dailyStatus = document.getElementById('dailyStatus');
+    const readResultAt = (baseTime) => {
+      const base = baseTime ? new Date(baseTime) : new Date();
+      const d = new Date(base);
+      d.setDate(base.getDate() + 1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+
+    const updateDailyStatus = () => {
+      if (!dailyStatus) return;
+      const savedTime = localStorage.getItem('user_prediction_time');
+      const savedPick = localStorage.getItem('user_prediction_data');
+      if (!savedPick || !savedTime) {
+        dailyStatus.textContent = '未エントリー';
+        return;
+      }
+      const resultAt = readResultAt(Number(savedTime));
+      const now = new Date();
+      if (now >= resultAt) {
+        dailyStatus.textContent = '結果発表中';
+        return;
+      }
+      const diff = resultAt.getTime() - now.getTime();
+      const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((diff / 60000) % 60)).padStart(2, '0');
+      dailyStatus.textContent = `結果まで ${h}:${m}`;
+    };
+
+    updateDailyStatus();
+    setInterval(updateDailyStatus, 60000);
+  </script>
+</body>
+</html>

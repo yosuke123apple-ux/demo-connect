@@ -1,0 +1,19 @@
+# Build outputs
+/target/
+/node_modules/
+
+# IDE / Android Studio
+/.idea/
+/android/
+/src/main/java/app/android/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Maven Wrapper
+/.mvn/wrapper/maven-wrapper.jar

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MILLION CORE | RAPID</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;700&family=JetBrains+Mono:wght@100;200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style4.css">
+</head>
+<body>
+
+<div class="app-container">
+  <header class="top-nav">
+    <div class="status-badge">⚡️ 5-MIN RAPID MODE</div>
+    <h1 class="main-title">MILLION<span>CORE</span></h1>
+  </header>
+
+  <main class="primary-card">
+    
+    <section class="rank-hero">
+      <p class="hero-label">FINAL RANKING</p>
+      <div class="seed-row">
+        <span class="seed-label">抽選番号</span>
+        <span id="targetDisplay" class="seed-value">-</span>
+      </div>
+      <div class="big-number"><span id="myRank">0</span><small>位</small></div>
+      <div id="tierDisplay" class="mega-tier">ANALYZING...</div>
+    </section>
+
+    <section class="ranking-board top3">
+      <p class="board-label">TOP 3 RECORDS</p>
+      <div id="top3Container"></div>
+    </section>
+
+    <section class="ranking-board">
+      <p class="board-label">NEARBY RANKING</p>
+      <div id="nearbyContainer"></div>
+    </section>
+
+    <section class="ranking-board">
+      <p class="board-label">RECENT HISTORY</p>
+      <div id="historyContainer"></div>
+    </section>
+
+    <footer class="action-area">
+      <button id="retryBtn" class="action-trigger">再解析を試行する</button>
+      <p id="cooldownDisplay" class="cooldown-display">再解析まで 05:00</p>
+      <button id="shareBtn" class="action-trigger ghost">結果を共有する</button>
+      <p class="status-tip">※現在の解析スコアは上書きされます</p>
+      <p class="soft-hint">次の解析で称号が変わる可能性があります</p>
+      <a href="index.html" class="home-link">ホームに戻る</a>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // TODO: set to your Render API base, e.g. "https://numberx.onrender.com"
+  window.RAPID_API_BASE = "";
+</script>
+<script src="app4.js"></script>
+</body>
+</html>
