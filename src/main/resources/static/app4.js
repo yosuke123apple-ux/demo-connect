@@ -13,6 +13,7 @@ var RapidMode = /** @class */ (function () {
         this.cooldownUntil = 0;
         var w = window;
         this.apiBase = (w && w.RAPID_API_BASE) ? String(w.RAPID_API_BASE).replace(/\/+$/, '') : '';
+        this.useLocalMock = !this.apiBase;
         this.retryBtn = document.getElementById('retryBtn');
         this.shareBtn = document.getElementById('shareBtn');
         this.cooldownEl = document.getElementById('cooldownDisplay');
@@ -115,16 +116,29 @@ var RapidMode = /** @class */ (function () {
             var res, data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch("".concat(this.apiBase, "/api/rapid/status"))];
+                    case 0:
+                        if (this.useLocalMock) {
+                            this.applyStatus(this.buildMockStatus());
+                            return [2 /*return*/];
+                        }
+                        _a.label = 1;
                     case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, fetch("".concat(this.apiBase, "/api/rapid/status"))];
+                    case 2:
                         res = _a.sent();
                         if (!res.ok)
-                            return [2 /*return*/];
+                            throw new Error('status not ok');
                         return [4 /*yield*/, res.json()];
-                    case 2:
+                    case 3:
                         data = _a.sent();
                         this.applyStatus(data);
-                        return [2 /*return*/];
+                        return [3 /*break*/, 5];
+                    case 4:
+                        _a.sent();
+                        this.applyStatus(this.buildMockStatus());
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -134,8 +148,18 @@ var RapidMode = /** @class */ (function () {
             var res, until, data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch("".concat(this.apiBase, "/api/rapid/reroll"), { method: 'POST' })];
+                    case 0:
+                        if (this.useLocalMock) {
+                            this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                            this.startCooldown(this.cooldownUntil);
+                            this.applyStatus(this.buildMockStatus());
+                            return [2 /*return*/];
+                        }
+                        _a.label = 1;
                     case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        return [4 /*yield*/, fetch("".concat(this.apiBase, "/api/rapid/reroll"), { method: 'POST' })];
+                    case 2:
                         res = _a.sent();
                         if (res.status === 429) {
                             until = Number(res.statusText);
@@ -146,12 +170,19 @@ var RapidMode = /** @class */ (function () {
                             return [2 /*return*/];
                         }
                         if (!res.ok)
-                            return [2 /*return*/];
+                            throw new Error('reroll not ok');
                         return [4 /*yield*/, res.json()];
-                    case 2:
+                    case 3:
                         data = _a.sent();
                         this.applyStatus(data);
-                        return [2 /*return*/];
+                        return [3 /*break*/, 5];
+                    case 4:
+                        _a.sent();
+                        this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                        this.startCooldown(this.cooldownUntil);
+                        this.applyStatus(this.buildMockStatus());
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -219,6 +250,46 @@ var RapidMode = /** @class */ (function () {
             }
         };
         requestAnimationFrame(step);
+    };
+    RapidMode.prototype.buildMockStatus = function () {
+        var target = Math.floor(Math.random() * 1000000) + 1;
+        var tier = this.pickTier(target);
+        var myId = this.genId();
+        var top3 = [
+            { no: 1, rank: 12, id: this.genId() },
+            { no: 2, rank: 248, id: this.genId() },
+            { no: 3, rank: 5087, id: this.genId() }
+        ];
+        var nearby = [
+            { id: this.genId(), rank: Math.max(1, Math.floor(target * 0.98)), isMe: false },
+            { id: myId, rank: target, isMe: true },
+            { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
+            { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
+        ];
+        var history = [
+            { time: Date.now() - 600000, rank: target, tier: tier },
+            { time: Date.now() - 3600000, rank: Math.floor(target * 1.03), tier: this.pickTier(Math.floor(target * 1.03)) }
+        ];
+        return {
+            now: Date.now(),
+            cooldownUntil: this.cooldownUntil,
+            result: { target: target, tier: tier, myId: myId, top3: top3, nearby: nearby },
+            history: history
+        };
+    };
+    RapidMode.prototype.pickTier = function (rank) {
+        var _a;
+        for (var _i = 0, TIERS_1 = TIERS; _i < TIERS_1.length; _i++) {
+            var t = TIERS_1[_i];
+            if (rank <= t.max)
+                return t.name;
+        }
+        return (_a = TIERS[TIERS.length - 1]) === null || _a === void 0 ? void 0 : _a.name;
+    };
+    RapidMode.prototype.genId = function () {
+        var prefix = ["UNIT", "NODE", "USER", "CORE"];
+        var num = Math.floor(Math.random() * 9000) + 1000;
+        return "".concat(prefix[Math.floor(Math.random() * prefix.length)], "_").concat(num);
     };
     return RapidMode;
 }());

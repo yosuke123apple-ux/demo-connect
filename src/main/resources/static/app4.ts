@@ -15,10 +15,12 @@ class RapidMode {
   private lastRank: number = 0;
   private cooldownUntil: number = 0;
   private readonly apiBase: string;
+  private readonly useLocalMock: boolean;
 
   constructor() {
     const w = window as any;
     this.apiBase = (w && w.RAPID_API_BASE) ? String(w.RAPID_API_BASE).replace(/\/+$/, '') : '';
+    this.useLocalMock = !this.apiBase;
     this.retryBtn = document.getElementById('retryBtn') as HTMLButtonElement | null;
     this.shareBtn = document.getElementById('shareBtn') as HTMLButtonElement | null;
     this.cooldownEl = document.getElementById('cooldownDisplay');
@@ -108,25 +110,45 @@ class RapidMode {
   }
 
   private async loadStatus() {
-    const res = await fetch(`${this.apiBase}/api/rapid/status`);
-    if (!res.ok) return;
-    const data = await res.json();
-    this.applyStatus(data);
+    if (this.useLocalMock) {
+      this.applyStatus(this.buildMockStatus());
+      return;
+    }
+    try {
+      const res = await fetch(`${this.apiBase}/api/rapid/status`);
+      if (!res.ok) throw new Error('status not ok');
+      const data = await res.json();
+      this.applyStatus(data);
+    } catch {
+      this.applyStatus(this.buildMockStatus());
+    }
   }
 
   private async reroll() {
-    const res = await fetch(`${this.apiBase}/api/rapid/reroll`, { method: 'POST' });
-    if (res.status === 429) {
-      const until = Number(res.statusText);
-      if (Number.isFinite(until)) {
-        this.cooldownUntil = until;
-        this.startCooldown(until);
-      }
+    if (this.useLocalMock) {
+      this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.startCooldown(this.cooldownUntil);
+      this.applyStatus(this.buildMockStatus());
       return;
     }
-    if (!res.ok) return;
-    const data = await res.json();
-    this.applyStatus(data);
+    try {
+      const res = await fetch(`${this.apiBase}/api/rapid/reroll`, { method: 'POST' });
+      if (res.status === 429) {
+        const until = Number(res.statusText);
+        if (Number.isFinite(until)) {
+          this.cooldownUntil = until;
+          this.startCooldown(until);
+        }
+        return;
+      }
+      if (!res.ok) throw new Error('reroll not ok');
+      const data = await res.json();
+      this.applyStatus(data);
+    } catch {
+      this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.startCooldown(this.cooldownUntil);
+      this.applyStatus(this.buildMockStatus());
+    }
   }
 
   private applyStatus(data: any) {
@@ -220,6 +242,46 @@ class RapidMode {
       }
     };
     requestAnimationFrame(step);
+  }
+
+  private buildMockStatus() {
+    const target = Math.floor(Math.random() * 1_000_000) + 1;
+    const tier = this.pickTier(target);
+    const myId = this.genId();
+    const top3 = [
+      { no: 1, rank: 12, id: this.genId() },
+      { no: 2, rank: 248, id: this.genId() },
+      { no: 3, rank: 5087, id: this.genId() }
+    ];
+    const nearby = [
+      { id: this.genId(), rank: Math.max(1, Math.floor(target * 0.98)), isMe: false },
+      { id: myId, rank: target, isMe: true },
+      { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
+      { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
+    ];
+    const history = [
+      { time: Date.now() - 600000, rank: target, tier },
+      { time: Date.now() - 3600000, rank: Math.floor(target * 1.03), tier: this.pickTier(Math.floor(target * 1.03)) }
+    ];
+    return {
+      now: Date.now(),
+      cooldownUntil: this.cooldownUntil,
+      result: { target, tier, myId, top3, nearby },
+      history
+    };
+  }
+
+  private pickTier(rank: number) {
+    for (const t of TIERS) {
+      if (rank <= t.max) return t.name;
+    }
+    return TIERS[TIERS.length - 1].name;
+  }
+
+  private genId() {
+    const prefix = ["UNIT", "NODE", "USER", "CORE"];
+    const num = Math.floor(Math.random() * 9000) + 1000;
+    return `${prefix[Math.floor(Math.random() * prefix.length)]}_${num}`;
   }
 }
 
