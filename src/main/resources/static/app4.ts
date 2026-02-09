@@ -16,6 +16,7 @@ class RapidMode {
   private cooldownUntil: number = 0;
   private readonly apiBase: string;
   private readonly useLocalMock: boolean;
+  private readonly cooldownKey: string = 'rapid_cooldown_until';
 
   constructor() {
     const w = window as any;
@@ -30,6 +31,7 @@ class RapidMode {
   private init() {
     this.setupRetryButton();
     this.setupShareButton();
+    this.restoreCooldown();
     this.loadStatus();
   }
 
@@ -83,6 +85,24 @@ class RapidMode {
     this.cooldownTimer = window.setInterval(tick, 1000);
   }
 
+  private restoreCooldown() {
+    const saved = Number(localStorage.getItem(this.cooldownKey));
+    if (Number.isFinite(saved) && saved > Date.now()) {
+      this.cooldownUntil = saved;
+      this.startCooldown(saved);
+    } else if (saved) {
+      localStorage.removeItem(this.cooldownKey);
+    }
+  }
+
+  private persistCooldown(until: number) {
+    if (until > Date.now()) {
+      localStorage.setItem(this.cooldownKey, String(until));
+    } else {
+      localStorage.removeItem(this.cooldownKey);
+    }
+  }
+
   private setupShareButton() {
     if (!this.shareBtn) return;
     this.shareBtn.addEventListener('click', () => {
@@ -127,6 +147,7 @@ class RapidMode {
   private async reroll() {
     if (this.useLocalMock) {
       this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.persistCooldown(this.cooldownUntil);
       this.startCooldown(this.cooldownUntil);
       this.applyStatus(this.buildMockStatus());
       return;
@@ -137,6 +158,7 @@ class RapidMode {
         const until = Number(res.statusText);
         if (Number.isFinite(until)) {
           this.cooldownUntil = until;
+          this.persistCooldown(until);
           this.startCooldown(until);
         }
         return;
@@ -146,6 +168,7 @@ class RapidMode {
       this.applyStatus(data);
     } catch {
       this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.persistCooldown(this.cooldownUntil);
       this.startCooldown(this.cooldownUntil);
       this.applyStatus(this.buildMockStatus());
     }
@@ -154,8 +177,11 @@ class RapidMode {
   private applyStatus(data: any) {
     const result = data.result;
     this.cooldownUntil = data.cooldownUntil || 0;
+    this.persistCooldown(this.cooldownUntil);
     this.target = result.target;
     this.myId = result.myId;
+    const rank = Number.isFinite(result.rank) ? result.rank : result.target;
+    this.lastRank = rank;
 
     const targetEl = document.getElementById('targetDisplay');
     if (targetEl) targetEl.innerText = this.target.toLocaleString();
@@ -163,7 +189,7 @@ class RapidMode {
     this.renderTop3(result.top3 || []);
     this.renderNearby(result.nearby || []);
     this.renderHistory(data.history || []);
-    this.animateRank(result.tier);
+    this.animateRank(result.tier, rank);
 
     if (Date.now() < this.cooldownUntil) {
       this.startCooldown(this.cooldownUntil);
@@ -219,16 +245,17 @@ class RapidMode {
     `).join('');
   }
 
-  private animateRank(tierName?: string) {
+  private animateRank(tierName?: string, rankValue?: number) {
     const el = document.getElementById('myRank')!;
     const tierEl = document.getElementById('tierDisplay')!;
     const duration = 2000;
     const start = performance.now();
+    const finalRank = Number.isFinite(rankValue) ? (rankValue as number) : this.target;
 
     const step = (now: number) => {
       const progress = Math.min((now - start) / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 4); 
-      const current = Math.floor(ease * this.target);
+      const current = Math.floor(ease * finalRank);
       el.innerText = current.toLocaleString();
 
       if (progress < 1) {
@@ -238,7 +265,7 @@ class RapidMode {
           tierEl.innerText = tierName;
           tierEl.classList.add('active');
         }
-        this.lastRank = this.target;
+        this.lastRank = finalRank;
       }
     };
     requestAnimationFrame(step);
@@ -248,6 +275,7 @@ class RapidMode {
     const target = Math.floor(Math.random() * 1_000_000) + 1;
     const tier = this.pickTier(target);
     const myId = this.genId();
+    const rank = Math.max(1, Math.min(1_000_000, target + Math.floor((Math.random() - 0.5) * 5000)));
     const top3 = [
       { no: 1, rank: 12, id: this.genId() },
       { no: 2, rank: 248, id: this.genId() },
@@ -255,7 +283,7 @@ class RapidMode {
     ];
     const nearby = [
       { id: this.genId(), rank: Math.max(1, Math.floor(target * 0.98)), isMe: false },
-      { id: myId, rank: target, isMe: true },
+      { id: myId, rank, isMe: true },
       { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
       { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
     ];
@@ -266,7 +294,7 @@ class RapidMode {
     return {
       now: Date.now(),
       cooldownUntil: this.cooldownUntil,
-      result: { target, tier, myId, top3, nearby },
+      result: { target, rank, tier, myId, top3, nearby },
       history
     };
   }

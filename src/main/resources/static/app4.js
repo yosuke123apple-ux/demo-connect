@@ -14,6 +14,7 @@ var RapidMode = /** @class */ (function () {
         var w = window;
         this.apiBase = (w && w.RAPID_API_BASE) ? String(w.RAPID_API_BASE).replace(/\/+$/, '') : '';
         this.useLocalMock = !this.apiBase;
+        this.cooldownKey = 'rapid_cooldown_until';
         this.retryBtn = document.getElementById('retryBtn');
         this.shareBtn = document.getElementById('shareBtn');
         this.cooldownEl = document.getElementById('cooldownDisplay');
@@ -22,6 +23,7 @@ var RapidMode = /** @class */ (function () {
     RapidMode.prototype.init = function () {
         this.setupRetryButton();
         this.setupShareButton();
+        this.restoreCooldown();
         this.loadStatus();
     };
     RapidMode.prototype.setupRetryButton = function () {
@@ -87,6 +89,24 @@ var RapidMode = /** @class */ (function () {
         tick();
         this.cooldownTimer = window.setInterval(tick, 1000);
     };
+    RapidMode.prototype.restoreCooldown = function () {
+        var saved = Number(localStorage.getItem(this.cooldownKey));
+        if (Number.isFinite(saved) && saved > Date.now()) {
+            this.cooldownUntil = saved;
+            this.startCooldown(saved);
+        }
+        else if (saved) {
+            localStorage.removeItem(this.cooldownKey);
+        }
+    };
+    RapidMode.prototype.persistCooldown = function (until) {
+        if (until > Date.now()) {
+            localStorage.setItem(this.cooldownKey, String(until));
+        }
+        else {
+            localStorage.removeItem(this.cooldownKey);
+        }
+    };
     RapidMode.prototype.setupShareButton = function () {
         var _this = this;
         if (!this.shareBtn)
@@ -151,6 +171,7 @@ var RapidMode = /** @class */ (function () {
                     case 0:
                         if (this.useLocalMock) {
                             this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                            this.persistCooldown(this.cooldownUntil);
                             this.startCooldown(this.cooldownUntil);
                             this.applyStatus(this.buildMockStatus());
                             return [2 /*return*/];
@@ -165,6 +186,7 @@ var RapidMode = /** @class */ (function () {
                             until = Number(res.statusText);
                             if (Number.isFinite(until)) {
                                 this.cooldownUntil = until;
+                                this.persistCooldown(until);
                                 this.startCooldown(until);
                             }
                             return [2 /*return*/];
@@ -179,6 +201,7 @@ var RapidMode = /** @class */ (function () {
                     case 4:
                         _a.sent();
                         this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                        this.persistCooldown(this.cooldownUntil);
                         this.startCooldown(this.cooldownUntil);
                         this.applyStatus(this.buildMockStatus());
                         return [3 /*break*/, 5];
@@ -190,15 +213,18 @@ var RapidMode = /** @class */ (function () {
     RapidMode.prototype.applyStatus = function (data) {
         var result = data.result;
         this.cooldownUntil = data.cooldownUntil || 0;
+        this.persistCooldown(this.cooldownUntil);
         this.target = result.target;
         this.myId = result.myId;
+        var rank = Number.isFinite(result.rank) ? result.rank : result.target;
+        this.lastRank = rank;
         var targetEl = document.getElementById('targetDisplay');
         if (targetEl)
             targetEl.innerText = this.target.toLocaleString();
         this.renderTop3(result.top3 || []);
         this.renderNearby(result.nearby || []);
         this.renderHistory(data.history || []);
-        this.animateRank(result.tier);
+        this.animateRank(result.tier, rank);
         if (Date.now() < this.cooldownUntil) {
             this.startCooldown(this.cooldownUntil);
         }
@@ -227,16 +253,17 @@ var RapidMode = /** @class */ (function () {
         }
         container.innerHTML = list.map(function (h) { return "\n      <div class=\"rank-item\">\n        <div class=\"r-info\">\n          <span class=\"r-no\">".concat(new Date(h.time).toLocaleTimeString().slice(0, 5), "</span>\n          <span class=\"r-name\">").concat(h.tier, "</span>\n        </div>\n        <span class=\"r-val\">").concat(h.rank.toLocaleString(), "\u4F4D</span>\n      </div>\n    "); }).join('');
     };
-    RapidMode.prototype.animateRank = function (tierName) {
+    RapidMode.prototype.animateRank = function (tierName, rankValue) {
         var _this = this;
         var el = document.getElementById('myRank');
         var tierEl = document.getElementById('tierDisplay');
         var duration = 2000;
         var start = performance.now();
+        var finalRank = Number.isFinite(rankValue) ? rankValue : this.target;
         var step = function (now) {
             var progress = Math.min((now - start) / duration, 1);
             var ease = 1 - Math.pow(1 - progress, 4);
-            var current = Math.floor(ease * _this.target);
+            var current = Math.floor(ease * finalRank);
             el.innerText = current.toLocaleString();
             if (progress < 1) {
                 requestAnimationFrame(step);
@@ -246,7 +273,7 @@ var RapidMode = /** @class */ (function () {
                     tierEl.innerText = tierName;
                     tierEl.classList.add('active');
                 }
-                _this.lastRank = _this.target;
+                _this.lastRank = finalRank;
             }
         };
         requestAnimationFrame(step);
@@ -255,6 +282,7 @@ var RapidMode = /** @class */ (function () {
         var target = Math.floor(Math.random() * 1000000) + 1;
         var tier = this.pickTier(target);
         var myId = this.genId();
+        var rank = Math.max(1, Math.min(1000000, target + Math.floor((Math.random() - 0.5) * 5000)));
         var top3 = [
             { no: 1, rank: 12, id: this.genId() },
             { no: 2, rank: 248, id: this.genId() },
@@ -262,7 +290,7 @@ var RapidMode = /** @class */ (function () {
         ];
         var nearby = [
             { id: this.genId(), rank: Math.max(1, Math.floor(target * 0.98)), isMe: false },
-            { id: myId, rank: target, isMe: true },
+            { id: myId, rank: rank, isMe: true },
             { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
             { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
         ];
@@ -273,7 +301,7 @@ var RapidMode = /** @class */ (function () {
         return {
             now: Date.now(),
             cooldownUntil: this.cooldownUntil,
-            result: { target: target, tier: tier, myId: myId, top3: top3, nearby: nearby },
+            result: { target: target, rank: rank, tier: tier, myId: myId, top3: top3, nearby: nearby },
             history: history
         };
     };
