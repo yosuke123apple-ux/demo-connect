@@ -1,0 +1,12 @@
+/* 通常（ライトモード） */
+body {
+    background-color: white;
+    color: black;
+    transition: 0.3s;
+}
+
+/* bodyに .dark-mode がついた時のスタイル */
+body.dark-mode {
+    background-color: #1a1a1a;
+    color: white;
+}

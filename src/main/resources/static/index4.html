@@ -24,6 +24,7 @@
         <span class="seed-label">抽選番号</span>
         <span id="targetDisplay" class="seed-value">-</span>
       </div>
+      <div id="premiumBadge" class="premium-badge" aria-hidden="true">PREMIUM EFFECT</div>
       <div class="big-number"><span id="myRank">0</span><small>位</small></div>
       <div id="tierDisplay" class="mega-tier">ANALYZING...</div>
     </section>
@@ -49,6 +50,34 @@
       <button id="shareBtn" class="action-trigger ghost">結果を共有する</button>
       <p class="status-tip">※現在の解析スコアは上書きされます</p>
       <p class="soft-hint">次の解析で称号が変わる可能性があります</p>
+
+      <section class="premium-card">
+        <p class="premium-label">PREMIUM</p>
+        <h4 class="premium-title">月額300円で解放</h4>
+        <ul class="premium-list">
+          <li>クールダウン 1分モード</li>
+          <li>履歴 無制限</li>
+          <li>限定称号 & 演出強化</li>
+          <li>テーマカラー選択</li>
+        </ul>
+        <div class="premium-status">
+          <span id="premiumState" class="premium-state">FREE</span>
+          <button id="managePremiumBtn" class="premium-manage">解除</button>
+        </div>
+        <div class="theme-panel" id="themePanel" aria-hidden="true">
+          <p class="theme-title">PREMIUM THEMES</p>
+          <div class="theme-grid">
+            <button class="theme-chip" data-theme="aurora" aria-label="Aurora"></button>
+            <button class="theme-chip" data-theme="ember" aria-label="Ember"></button>
+            <button class="theme-chip" data-theme="cobalt" aria-label="Cobalt"></button>
+            <button class="theme-chip" data-theme="neon" aria-label="Neon"></button>
+          </div>
+          <p class="theme-note">※プレミアムのみ変更可能</p>
+        </div>
+        <button id="subscribeBtn" class="action-trigger premium">プレミアムにする</button>
+        <p class="premium-note">※今は擬似課金（端末のみ）</p>
+      </section>
+
       <a href="index.html" class="home-link">ホームに戻る</a>
     </footer>
 

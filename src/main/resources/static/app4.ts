@@ -10,6 +10,12 @@ class RapidMode {
   private myId: string = '';
   private retryBtn: HTMLButtonElement | null;
   private shareBtn: HTMLButtonElement | null;
+  private subscribeBtn: HTMLButtonElement | null;
+  private managePremiumBtn: HTMLButtonElement | null;
+  private premiumStateEl: HTMLElement | null;
+  private premiumBadgeEl: HTMLElement | null;
+  private themePanelEl: HTMLElement | null;
+  private themeButtons: NodeListOf<HTMLButtonElement> | null = null;
   private cooldownEl: HTMLElement | null;
   private cooldownTimer: number | null = null;
   private lastRank: number = 0;
@@ -17,6 +23,9 @@ class RapidMode {
   private readonly apiBase: string;
   private readonly useLocalMock: boolean;
   private readonly cooldownKey: string = 'rapid_cooldown_until';
+  private readonly premiumKey: string = 'rapid_premium';
+  private readonly themeKey: string = 'rapid_theme';
+  private isPremium: boolean = false;
 
   constructor() {
     const w = window as any;
@@ -24,6 +33,12 @@ class RapidMode {
     this.useLocalMock = !this.apiBase;
     this.retryBtn = document.getElementById('retryBtn') as HTMLButtonElement | null;
     this.shareBtn = document.getElementById('shareBtn') as HTMLButtonElement | null;
+    this.subscribeBtn = document.getElementById('subscribeBtn') as HTMLButtonElement | null;
+    this.managePremiumBtn = document.getElementById('managePremiumBtn') as HTMLButtonElement | null;
+    this.premiumStateEl = document.getElementById('premiumState');
+    this.premiumBadgeEl = document.getElementById('premiumBadge');
+    this.themePanelEl = document.getElementById('themePanel');
+    this.themeButtons = document.querySelectorAll('.theme-chip');
     this.cooldownEl = document.getElementById('cooldownDisplay');
     this.init();
   }
@@ -31,6 +46,10 @@ class RapidMode {
   private init() {
     this.setupRetryButton();
     this.setupShareButton();
+    this.setupSubscribeButton();
+    this.setupManagePremiumButton();
+    this.setupThemeSelector();
+    this.restorePremium();
     this.restoreCooldown();
     this.loadStatus();
   }
@@ -85,6 +104,48 @@ class RapidMode {
     this.cooldownTimer = window.setInterval(tick, 1000);
   }
 
+  private getCooldownMs() {
+    return this.isPremium ? 60 * 1000 : 5 * 60 * 1000;
+  }
+
+  private restorePremium() {
+    const saved = localStorage.getItem(this.premiumKey);
+    this.isPremium = saved === '1';
+    this.updatePremiumUI();
+  }
+
+  private setPremium(enabled: boolean) {
+    this.isPremium = enabled;
+    if (enabled) {
+      localStorage.setItem(this.premiumKey, '1');
+    } else {
+      localStorage.removeItem(this.premiumKey);
+    }
+    this.updatePremiumUI();
+  }
+
+  private updatePremiumUI() {
+    if (this.premiumStateEl) {
+      this.premiumStateEl.textContent = this.isPremium ? 'PREMIUM' : 'FREE';
+      this.premiumStateEl.classList.toggle('active', this.isPremium);
+    }
+    if (this.premiumBadgeEl) {
+      this.premiumBadgeEl.classList.toggle('active', this.isPremium);
+      this.premiumBadgeEl.setAttribute('aria-hidden', this.isPremium ? 'false' : 'true');
+    }
+    if (this.managePremiumBtn) {
+      this.managePremiumBtn.style.display = this.isPremium ? 'inline-flex' : 'none';
+    }
+    if (this.subscribeBtn) {
+      this.subscribeBtn.textContent = this.isPremium ? 'プレミアム適用済み' : 'プレミアムにする';
+      this.subscribeBtn.disabled = this.isPremium;
+    }
+    if (this.themePanelEl) {
+      this.themePanelEl.classList.toggle('active', this.isPremium);
+      this.themePanelEl.setAttribute('aria-hidden', this.isPremium ? 'false' : 'true');
+    }
+  }
+
   private restoreCooldown() {
     const saved = Number(localStorage.getItem(this.cooldownKey));
     if (Number.isFinite(saved) && saved > Date.now()) {
@@ -129,6 +190,55 @@ class RapidMode {
     });
   }
 
+  private setupSubscribeButton() {
+    if (!this.subscribeBtn) return;
+    this.subscribeBtn.addEventListener('click', () => {
+      this.setPremium(true);
+      alert('プレミアムを仮適用しました（この端末のみ）。');
+    });
+  }
+
+  private setupManagePremiumButton() {
+    if (!this.managePremiumBtn) return;
+    this.managePremiumBtn.addEventListener('click', () => {
+      if (!this.isPremium) return;
+      this.setPremium(false);
+    });
+  }
+
+  private setupThemeSelector() {
+    if (!this.themeButtons || !this.themeButtons.length) return;
+    this.themeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme || '';
+        if (!this.isPremium) {
+          alert('プレミアムのみ変更できます');
+          return;
+        }
+        this.applyTheme(theme);
+      });
+    });
+    const saved = localStorage.getItem(this.themeKey) || 'aurora';
+    this.applyTheme(saved, true);
+  }
+
+  private applyTheme(theme: string, silent?: boolean) {
+    const body = document.body;
+    body.setAttribute('data-theme', theme);
+    localStorage.setItem(this.themeKey, theme);
+    if (this.themeButtons) {
+      this.themeButtons.forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
+    }
+    if (!silent) {
+      this.flashTheme();
+    }
+  }
+
+  private flashTheme() {
+    document.body.classList.add('theme-flash');
+    window.setTimeout(() => document.body.classList.remove('theme-flash'), 400);
+  }
+
   private async loadStatus() {
     if (this.useLocalMock) {
       this.applyStatus(this.buildMockStatus());
@@ -146,7 +256,7 @@ class RapidMode {
 
   private async reroll() {
     if (this.useLocalMock) {
-      this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.cooldownUntil = Date.now() + this.getCooldownMs();
       this.persistCooldown(this.cooldownUntil);
       this.startCooldown(this.cooldownUntil);
       this.applyStatus(this.buildMockStatus());
@@ -167,7 +277,7 @@ class RapidMode {
       const data = await res.json();
       this.applyStatus(data);
     } catch {
-      this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+      this.cooldownUntil = Date.now() + this.getCooldownMs();
       this.persistCooldown(this.cooldownUntil);
       this.startCooldown(this.cooldownUntil);
       this.applyStatus(this.buildMockStatus());
@@ -234,7 +344,8 @@ class RapidMode {
       container.innerHTML = `<div class="rank-item"><span class="r-no">--</span><span class="r-val">履歴なし</span></div>`;
       return;
     }
-    container.innerHTML = list.map((h) => `
+    const capped = this.isPremium ? list : list.slice(0, 10);
+    container.innerHTML = capped.map((h) => `
       <div class="rank-item">
         <div class="r-info">
           <span class="r-no">${new Date(h.time).toLocaleTimeString().slice(0,5)}</span>
@@ -262,8 +373,10 @@ class RapidMode {
         requestAnimationFrame(step);
       } else {
         if (tierName) {
-          tierEl.innerText = tierName;
+          const decorated = this.isPremium ? `${tierName} • PRIME` : tierName;
+          tierEl.innerText = decorated;
           tierEl.classList.add('active');
+          tierEl.classList.toggle('premium', this.isPremium);
         }
         this.lastRank = finalRank;
       }
@@ -287,10 +400,15 @@ class RapidMode {
       { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
       { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
     ];
-    const history = [
-      { time: Date.now() - 600000, rank: target, tier },
-      { time: Date.now() - 3600000, rank: Math.floor(target * 1.03), tier: this.pickTier(Math.floor(target * 1.03)) }
-    ];
+    const historyCount = this.isPremium ? 20 : 10;
+    const history = Array.from({ length: historyCount }, (_, i) => {
+      const r = Math.max(1, Math.min(1_000_000, target + (i + 1) * 123));
+      return {
+        time: Date.now() - (i + 1) * 600000,
+        rank: r,
+        tier: this.pickTier(r)
+      };
+    });
     return {
       now: Date.now(),
       cooldownUntil: this.cooldownUntil,

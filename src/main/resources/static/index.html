@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MILLION CORE</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2b1762">
 
   <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,6 +82,10 @@
   </div>
 
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    }
+
     const openQuick = document.getElementById('openQuick');
     const closeQuick = document.getElementById('closeQuick');
     const quickGate = document.getElementById('quickGate');

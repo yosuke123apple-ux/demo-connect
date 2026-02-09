@@ -15,14 +15,27 @@ var RapidMode = /** @class */ (function () {
         this.apiBase = (w && w.RAPID_API_BASE) ? String(w.RAPID_API_BASE).replace(/\/+$/, '') : '';
         this.useLocalMock = !this.apiBase;
         this.cooldownKey = 'rapid_cooldown_until';
+        this.premiumKey = 'rapid_premium';
+        this.themeKey = 'rapid_theme';
+        this.isPremium = false;
         this.retryBtn = document.getElementById('retryBtn');
         this.shareBtn = document.getElementById('shareBtn');
+        this.subscribeBtn = document.getElementById('subscribeBtn');
+        this.managePremiumBtn = document.getElementById('managePremiumBtn');
+        this.premiumStateEl = document.getElementById('premiumState');
+        this.premiumBadgeEl = document.getElementById('premiumBadge');
+        this.themePanelEl = document.getElementById('themePanel');
+        this.themeButtons = document.querySelectorAll('.theme-chip');
         this.cooldownEl = document.getElementById('cooldownDisplay');
         this.init();
     }
     RapidMode.prototype.init = function () {
         this.setupRetryButton();
         this.setupShareButton();
+        this.setupSubscribeButton();
+        this.setupManagePremiumButton();
+        this.setupThemeSelector();
+        this.restorePremium();
         this.restoreCooldown();
         this.loadStatus();
     };
@@ -89,6 +102,45 @@ var RapidMode = /** @class */ (function () {
         tick();
         this.cooldownTimer = window.setInterval(tick, 1000);
     };
+    RapidMode.prototype.getCooldownMs = function () {
+        return this.isPremium ? 60 * 1000 : 5 * 60 * 1000;
+    };
+    RapidMode.prototype.restorePremium = function () {
+        var saved = localStorage.getItem(this.premiumKey);
+        this.isPremium = saved === '1';
+        this.updatePremiumUI();
+    };
+    RapidMode.prototype.setPremium = function (enabled) {
+        this.isPremium = enabled;
+        if (enabled) {
+            localStorage.setItem(this.premiumKey, '1');
+        }
+        else {
+            localStorage.removeItem(this.premiumKey);
+        }
+        this.updatePremiumUI();
+    };
+    RapidMode.prototype.updatePremiumUI = function () {
+        if (this.premiumStateEl) {
+            this.premiumStateEl.textContent = this.isPremium ? 'PREMIUM' : 'FREE';
+            this.premiumStateEl.classList.toggle('active', this.isPremium);
+        }
+        if (this.premiumBadgeEl) {
+            this.premiumBadgeEl.classList.toggle('active', this.isPremium);
+            this.premiumBadgeEl.setAttribute('aria-hidden', this.isPremium ? 'false' : 'true');
+        }
+        if (this.managePremiumBtn) {
+            this.managePremiumBtn.style.display = this.isPremium ? 'inline-flex' : 'none';
+        }
+        if (this.subscribeBtn) {
+            this.subscribeBtn.textContent = this.isPremium ? 'プレミアム適用済み' : 'プレミアムにする';
+            this.subscribeBtn.disabled = this.isPremium;
+        }
+        if (this.themePanelEl) {
+            this.themePanelEl.classList.toggle('active', this.isPremium);
+            this.themePanelEl.setAttribute('aria-hidden', this.isPremium ? 'false' : 'true');
+        }
+    };
     RapidMode.prototype.restoreCooldown = function () {
         var saved = Number(localStorage.getItem(this.cooldownKey));
         if (Number.isFinite(saved) && saved > Date.now()) {
@@ -131,6 +183,56 @@ var RapidMode = /** @class */ (function () {
             }
         });
     };
+    RapidMode.prototype.setupSubscribeButton = function () {
+        if (!this.subscribeBtn)
+            return;
+        this.subscribeBtn.addEventListener('click', function () {
+            this.setPremium(true);
+            alert('プレミアムを仮適用しました（この端末のみ）。');
+        }.bind(this));
+    };
+    RapidMode.prototype.setupManagePremiumButton = function () {
+        if (!this.managePremiumBtn)
+            return;
+        this.managePremiumBtn.addEventListener('click', function () {
+            if (!this.isPremium)
+                return;
+            this.setPremium(false);
+        }.bind(this));
+    };
+    RapidMode.prototype.setupThemeSelector = function () {
+        var _this = this;
+        if (!this.themeButtons || !this.themeButtons.length)
+            return;
+        this.themeButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var theme = btn.dataset.theme || '';
+                if (!_this.isPremium) {
+                    alert('プレミアムのみ変更できます');
+                    return;
+                }
+                _this.applyTheme(theme);
+            });
+        });
+        var saved = localStorage.getItem(this.themeKey) || 'aurora';
+        this.applyTheme(saved, true);
+    };
+    RapidMode.prototype.applyTheme = function (theme, silent) {
+        var _this = this;
+        var body = document.body;
+        body.setAttribute('data-theme', theme);
+        localStorage.setItem(this.themeKey, theme);
+        if (this.themeButtons) {
+            this.themeButtons.forEach(function (b) { return b.classList.toggle('active', b.dataset.theme === theme); });
+        }
+        if (!silent) {
+            this.flashTheme();
+        }
+    };
+    RapidMode.prototype.flashTheme = function () {
+        document.body.classList.add('theme-flash');
+        window.setTimeout(function () { return document.body.classList.remove('theme-flash'); }, 400);
+    };
     RapidMode.prototype.loadStatus = function () {
         return __awaiter(this, void 0, void 0, function () {
             var res, data;
@@ -170,7 +272,7 @@ var RapidMode = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         if (this.useLocalMock) {
-                            this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                            this.cooldownUntil = Date.now() + this.getCooldownMs();
                             this.persistCooldown(this.cooldownUntil);
                             this.startCooldown(this.cooldownUntil);
                             this.applyStatus(this.buildMockStatus());
@@ -200,7 +302,7 @@ var RapidMode = /** @class */ (function () {
                         return [3 /*break*/, 5];
                     case 4:
                         _a.sent();
-                        this.cooldownUntil = Date.now() + 5 * 60 * 1000;
+                        this.cooldownUntil = Date.now() + this.getCooldownMs();
                         this.persistCooldown(this.cooldownUntil);
                         this.startCooldown(this.cooldownUntil);
                         this.applyStatus(this.buildMockStatus());
@@ -251,7 +353,8 @@ var RapidMode = /** @class */ (function () {
             container.innerHTML = "<div class=\"rank-item\"><span class=\"r-no\">--</span><span class=\"r-val\">\u5C65\u6B74\u306A\u3057</span></div>";
             return;
         }
-        container.innerHTML = list.map(function (h) { return "\n      <div class=\"rank-item\">\n        <div class=\"r-info\">\n          <span class=\"r-no\">".concat(new Date(h.time).toLocaleTimeString().slice(0, 5), "</span>\n          <span class=\"r-name\">").concat(h.tier, "</span>\n        </div>\n        <span class=\"r-val\">").concat(h.rank.toLocaleString(), "\u4F4D</span>\n      </div>\n    "); }).join('');
+        var capped = this.isPremium ? list : list.slice(0, 10);
+        container.innerHTML = capped.map(function (h) { return "\n      <div class=\"rank-item\">\n        <div class=\"r-info\">\n          <span class=\"r-no\">".concat(new Date(h.time).toLocaleTimeString().slice(0, 5), "</span>\n          <span class=\"r-name\">").concat(h.tier, "</span>\n        </div>\n        <span class=\"r-val\">").concat(h.rank.toLocaleString(), "\u4F4D</span>\n      </div>\n    "); }).join('');
     };
     RapidMode.prototype.animateRank = function (tierName, rankValue) {
         var _this = this;
@@ -270,8 +373,10 @@ var RapidMode = /** @class */ (function () {
             }
             else {
                 if (tierName) {
-                    tierEl.innerText = tierName;
+                    var decorated = _this.isPremium ? "".concat(tierName, " \u2022 PRIME") : tierName;
+                    tierEl.innerText = decorated;
                     tierEl.classList.add('active');
+                    tierEl.classList.toggle('premium', _this.isPremium);
                 }
                 _this.lastRank = finalRank;
             }
@@ -294,10 +399,15 @@ var RapidMode = /** @class */ (function () {
             { id: this.genId(), rank: Math.floor(target * 1.02), isMe: false },
             { id: this.genId(), rank: Math.floor(target * 1.05), isMe: false }
         ];
-        var history = [
-            { time: Date.now() - 600000, rank: target, tier: tier },
-            { time: Date.now() - 3600000, rank: Math.floor(target * 1.03), tier: this.pickTier(Math.floor(target * 1.03)) }
-        ];
+        var historyCount = this.isPremium ? 20 : 10;
+        var history = Array.from({ length: historyCount }, function (_, i) {
+            var r = Math.max(1, Math.min(1000000, target + (i + 1) * 123));
+            return {
+                time: Date.now() - (i + 1) * 600000,
+                rank: r,
+                tier: this.pickTier(r)
+            };
+        }.bind(this));
         return {
             now: Date.now(),
             cooldownUntil: this.cooldownUntil,
