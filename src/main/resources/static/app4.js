@@ -17,6 +17,7 @@ var RapidMode = /** @class */ (function () {
         this.cooldownKey = 'rapid_cooldown_until';
         this.premiumKey = 'rapid_premium';
         this.themeKey = 'rapid_theme';
+        this.checkoutUrl = (w && w.PREMIUM_CHECKOUT_URL) ? String(w.PREMIUM_CHECKOUT_URL) : '';
         this.isPremium = false;
         this.retryBtn = document.getElementById('retryBtn');
         this.shareBtn = document.getElementById('shareBtn');
@@ -187,8 +188,12 @@ var RapidMode = /** @class */ (function () {
         if (!this.subscribeBtn)
             return;
         this.subscribeBtn.addEventListener('click', function () {
+            if (this.checkoutUrl) {
+                window.location.href = this.checkoutUrl;
+                return;
+            }
             this.setPremium(true);
-            alert('プレミアムを仮適用しました（この端末のみ）。');
+            alert('決済URL未設定のため、プレミアムを仮適用しました（この端末のみ）。');
         }.bind(this));
     };
     RapidMode.prototype.setupManagePremiumButton = function () {

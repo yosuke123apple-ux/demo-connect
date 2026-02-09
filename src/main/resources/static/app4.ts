@@ -25,12 +25,14 @@ class RapidMode {
   private readonly cooldownKey: string = 'rapid_cooldown_until';
   private readonly premiumKey: string = 'rapid_premium';
   private readonly themeKey: string = 'rapid_theme';
+  private readonly checkoutUrl: string;
   private isPremium: boolean = false;
 
   constructor() {
     const w = window as any;
     this.apiBase = (w && w.RAPID_API_BASE) ? String(w.RAPID_API_BASE).replace(/\/+$/, '') : '';
     this.useLocalMock = !this.apiBase;
+    this.checkoutUrl = (w && w.PREMIUM_CHECKOUT_URL) ? String(w.PREMIUM_CHECKOUT_URL) : '';
     this.retryBtn = document.getElementById('retryBtn') as HTMLButtonElement | null;
     this.shareBtn = document.getElementById('shareBtn') as HTMLButtonElement | null;
     this.subscribeBtn = document.getElementById('subscribeBtn') as HTMLButtonElement | null;
@@ -193,8 +195,12 @@ class RapidMode {
   private setupSubscribeButton() {
     if (!this.subscribeBtn) return;
     this.subscribeBtn.addEventListener('click', () => {
+      if (this.checkoutUrl) {
+        window.location.href = this.checkoutUrl;
+        return;
+      }
       this.setPremium(true);
-      alert('プレミアムを仮適用しました（この端末のみ）。');
+      alert('決済URL未設定のため、プレミアムを仮適用しました（この端末のみ）。');
     });
   }
 
