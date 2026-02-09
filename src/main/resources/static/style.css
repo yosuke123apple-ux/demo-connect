@@ -161,6 +161,36 @@ body {
   opacity: 0.6;
 }
 
+/* ===== Premium CTA ===== */
+.premium-cta {
+  margin-top: 18px;
+  border: 1px solid rgba(255, 223, 0, 0.3);
+  background: linear-gradient(160deg, rgba(255, 223, 0, 0.08), rgba(124, 58, 237, 0.12));
+}
+.premium-kicker {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  opacity: 0.85;
+  margin: 0 0 6px;
+}
+.premium-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.premium-desc {
+  font-size: 12px;
+  opacity: 0.85;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+.premium-note {
+  margin-top: 8px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
 /* ===== Quick Gate ===== */
 .gate-overlay {
   position: fixed;
